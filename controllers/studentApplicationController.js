@@ -1,11 +1,20 @@
 const { Pool } = require("pg");
+const nodemailer = require('nodemailer');
 
 const pool = new Pool({
-    ser: "postgres",
+    user: "postgres",
     host: "localhost",
     database: "Main_DB",
     password: "2704",
     port: "8888",
+});
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+    auth: {
+        user: 'canadiancoachestest@gmail.com',
+        pass: 'qnpckfjpgzpmuqqy'
+    }
 });
 
 const checkExistingStudent = async (first_name, last_name, email) => {
@@ -35,7 +44,7 @@ const createNewStudent = async (data) => {
     emergency_contact_relation,
   } = data;
   const result = await pool.query(
-    "INSERT INTO student_applications (first_name, last_name, email, province, city, address, postal_code, date_of_birth, pronoun, institution_name, program_name, password, emergency_contact_first_name, emergency_contact_last_name, emergency_contact_phone, emergency_contact_relation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *",
+    "INSERT INTO student_applications (first_name, last_name, email, province, city, address, postal_code, date_of_birth, pronoun, institution_name, program_name, emergency_contact_first_name, emergency_contact_last_name, emergency_contact_phone, emergency_contact_relation) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *",
     [
         first_name,
         last_name,
@@ -54,6 +63,21 @@ const createNewStudent = async (data) => {
         emergency_contact_relation,
     ]
   );
+  const mailOptions = {
+    from: 'canadiancoachestest@gmail.com',
+    to: email,
+    subject: 'Application Submitted Successfully',
+    text: 'Thank you '+first_name+' '+last_name+ ' for submitting your application to Canadian Higher Ed Coaches. Your status is "pending"'
+  };
+
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.error(error.message);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+
   return result.rows[0];
 };
 
