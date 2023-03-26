@@ -1,19 +1,21 @@
+require('dotenv').config();
+
 const { Pool } = require("pg");
 const nodemailer = require('nodemailer');
 
 const pool = new Pool({
-    user: "postgres",
-    host: "localhost",
-    database: "Main_DB",
-    password: "2704",
-    port: "8888",
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT
 });
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
     auth: {
-        user: 'canadiancoachestest@gmail.com',
-        pass: 'qnpckfjpgzpmuqqy'
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     }
 });
 
@@ -60,7 +62,7 @@ const createNewStudent = async (data) => {
         emergency_contact_first_name,
         emergency_contact_last_name,
         emergency_contact_phone,
-        emergency_contact_relation,
+        emergency_contact_relation
     ]
   );
   const mailOptions = {
