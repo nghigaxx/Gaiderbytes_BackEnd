@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
 const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplyController");
+const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
 
 const app = express();
 app.use(cors());
@@ -38,6 +39,46 @@ app.post("/coachApplication", upload.single("resume"), async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.post("/checkStatus", async (req, res) => {
+  try {
+    const { email, userType } = req.body;
+    const user = await findUserByEmail(email, userType);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const code = Math.floor(Math.random() * 899999 + 100000);
+    await sendVerificationCode(email, code);
+    await updateUserVerificationCode(email, userType, code);
+
+    res.status(200).json({ message: "Verification code sent" });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/verifyCode", async (req, res) => {
+  try {
+    const { email, userType, code } = req.body;
+    const isValidCode = await checkVerificationCode(email, userType, code);
+
+    if (!isValidCode) {
+      return res.status(402).json({ message: "Invalid verification code" });
+    }
+
+    const user = await findUserByEmail(email, userType);
+    res.status(202).json({ message: "Verification successful", status: user.status });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
 
 app.listen(5000, () => {
   console.log("Server started on port 5000");
