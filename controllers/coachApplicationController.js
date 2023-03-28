@@ -6,18 +6,18 @@ const Dropbox = require("dropbox").Dropbox;
 const fetch = require("node-fetch");
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
 });
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -36,7 +36,7 @@ const checkExistingCoach = async (first_name, last_name, email) => {
 
 const uploadResumeToDropbox = async (file) => {
     const result = await dbx.filesUpload({
-      path: `/Apps/Canadian Higher Ed Coaches Test/resumes/${file.originalname}`,
+      path: `process.env.DROPBOX_URL${file.originalname}`,
       contents: file.buffer,
     });
     const link = await dbx.sharingCreateSharedLinkWithSettings({
@@ -65,12 +65,13 @@ const createNewCoach = async (data, resumeFile) => {
     introduction,
     reside_in_canada,
     post_secondary_exp,
+    post_secondary_program,
   } = data;
 
   const resume_url = await uploadResumeToDropbox(resumeFile);
 
   const result = await pool.query(
-    "INSERT INTO coach_applications (first_name, last_name, email, province, city, address, postal_code, date_of_birth, pronoun, years_of_experience, resume_url, self_identification, gen_status, languages, institutions, availability, introduction, reside_in_canada, post_secondary_exp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING *",
+    "INSERT INTO coach_applications (first_name, last_name, email, province, city, address, postal_code, date_of_birth, pronoun, years_of_experience, resume_url, self_identification, gen_status, languages, institutions, availability, introduction, reside_in_canada, post_secondary_exp, post_secondary_program) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *",
     [
       first_name,
       last_name,
@@ -91,6 +92,7 @@ const createNewCoach = async (data, resumeFile) => {
       introduction,
       reside_in_canada,
       post_secondary_exp,
+      post_secondary_program,
     ]
   );
 
