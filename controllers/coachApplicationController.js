@@ -3,7 +3,10 @@ require('dotenv').config();
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer");
 const Dropbox = require("dropbox").Dropbox;
-const fetch = require("node-fetch");
+let fetch;
+import('node-fetch').then((module) => {
+  fetch = module.default;
+});
 
 const pool = new Pool({
     user: process.env.DB_USER,

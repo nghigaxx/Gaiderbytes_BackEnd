@@ -3,9 +3,10 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
-const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplyController");
+const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
 const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
-
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -53,7 +54,7 @@ app.post("/checkStatus", async (req, res) => {
     await sendVerificationCode(email, code);
     await updateUserVerificationCode(email, userType, code);
 
-    res.status(200).json({ message: "Verification code sent" });
+    res.status(202).json({ message: "Verification code sent" });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: "Server error" });
@@ -70,7 +71,7 @@ app.post("/verifyCode", async (req, res) => {
     }
 
     const user = await findUserByEmail(email, userType);
-    res.status(202).json({ message: "Verification successful", status: user.status });
+    res.status(203).json({ message: "Verification successful", status: user.status });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: "Server error" });
