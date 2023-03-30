@@ -8,6 +8,7 @@ const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, check
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const app = express();
+
 app.use(cors());
 app.use(bodyParser.json());
 

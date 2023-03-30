@@ -2,11 +2,10 @@ require('dotenv').config();
 
 const { Pool } = require("pg");
 const nodemailer = require("nodemailer");
-const Dropbox = require("dropbox").Dropbox;
-let fetch;
-import('node-fetch').then((module) => {
-  fetch = module.default;
-});
+const { google } = require('googleapis');
+const fs = require('fs');
+const { GoogleAuth } = require('google-auth-library');
+const { Readable } = require('stream');
 
 const pool = new Pool({
     user: process.env.DB_USER,
@@ -24,9 +23,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const dbx = new Dropbox({
-  accessToken: process.env.DROPBOX_ACCESS_TOKEN,
-  fetch: fetch,
+const googleAuth = new GoogleAuth({
+  keyFile: '../api/googledrivekey.json',
+  scopes: ['https://www.googleapis.com/auth/drive'],
+});
+
+const drive = google.drive({
+  version: 'v3',
+  auth: googleAuth,
 });
 
 const checkExistingCoach = async (first_name, last_name, email) => {
@@ -37,16 +41,47 @@ const checkExistingCoach = async (first_name, last_name, email) => {
   return result.rows.length > 0;
 };
 
-const uploadResumeToDropbox = async (file) => {
-    const result = await dbx.filesUpload({
-      path: `process.env.DROPBOX_URL${file.originalname}`,
-      contents: file.buffer,
-    });
-    const link = await dbx.sharingCreateSharedLinkWithSettings({
-      path: result.path_lower,
-    });
-    return link.url;
+const uploadResumeToGoogleDrive = async (file) => {
+  if (!file) {
+    throw new Error("No file provided");
+  }
+
+  const bufferStream = new Readable();
+  bufferStream.push(file.buffer);
+  bufferStream.push(null);
+
+  const fileMetadata = {
+    name: file.originalname,
+    mimeType: file.mimetype,
   };
+
+  const media = {
+    mimeType: file.mimetype,
+    body: bufferStream,
+  };
+
+  const result = await drive.files.create({
+    requestBody: fileMetadata,
+    media: media,
+    fields: 'id,webViewLink',
+  });
+
+  const fileId = result.data.id;
+
+  const personalEmail = process.env.EMAIL_USER;
+
+  await drive.permissions.create({
+    fileId: fileId,
+    requestBody: {
+      role: 'writer',
+      type: 'user',
+      emailAddress: personalEmail,
+    },
+    fields: 'id',
+  });
+
+  return result.data.webViewLink;
+};
 
 const createNewCoach = async (data, resumeFile) => {
   const {
@@ -71,7 +106,7 @@ const createNewCoach = async (data, resumeFile) => {
     post_secondary_program,
   } = data;
 
-  const resume_url = await uploadResumeToDropbox(resumeFile);
+  const resume_url = await uploadResumeToGoogleDrive(resumeFile);
 
   const result = await pool.query(
     "INSERT INTO coach_applications (first_name, last_name, email, province, city, address, postal_code, date_of_birth, pronoun, years_of_experience, resume_url, self_identification, gen_status, languages, institutions, availability, introduction, reside_in_canada, post_secondary_exp, post_secondary_program) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *",
