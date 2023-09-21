@@ -5,9 +5,11 @@ const multer = require("multer");
 const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
 const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
 const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
+const { adminLogin } = require('./controllers/adminController');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const app = express();
+
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -78,5 +80,9 @@ app.post("/verifyCode", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.post('/adminLogin', adminLogin);
+
+
 
 module.exports = app;
