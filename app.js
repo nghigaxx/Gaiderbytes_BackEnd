@@ -6,6 +6,12 @@ const { checkExistingStudent, createNewStudent } = require("./controllers/studen
 const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
 const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
 const { adminLogin } = require('./controllers/adminController');
+const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, getStudentFullDetails} = require('./controllers/manageFetchController');
+const { CheckMatchValidity, matchStudentWithCoach } = require('./controllers/manageMatchController');
+const { getAvailableCoachLimitedDetails, getUnmatchedStudentLimitedDetails} = require('./controllers/fetchMatchController')
+const { updateApplicationStatus } = require('./controllers/applicationStatusController');
+
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const app = express();
@@ -82,6 +88,38 @@ app.post("/verifyCode", async (req, res) => {
 });
 
 app.post('/adminLogin', adminLogin);
+
+app.get('/admin/coaches', getCoachLimitedDetails);
+app.get('/admin/coach/:id', getCoachFullDetails);  // Get full details for a specific coach using their ID
+app.get('/admin/students', getStudentLimitedDetails);
+app.get('/admin/student/:id', getStudentFullDetails);  // Get full details for a specific student using their ID
+app.get('/admin/unmatched_students', getUnmatchedStudentLimitedDetails); // Get list of unmatched students, only use for matching page
+app.get('/admin/available_coaches', getAvailableCoachLimitedDetails); // Get list of available coaches, only use for matching page
+
+app.put('/admin/match', async (req, res) => {
+  try {
+      const { studentId, coachId } = req.body; 
+
+      const validity = await CheckMatchValidity(studentId, coachId);
+
+      if (validity === 'student-already-matched') {
+          return res.status(406).json({ message: "The selected student is already matched with a coach." });
+      } else if (validity === 'coach-limit-exceeded') {
+          return res.status(416).json({ message: "The selected coach has already reached their workload limit." });
+      }
+
+      await matchStudentWithCoach(studentId, coachId);
+
+      res.status(206).json({ message: "Student and Coach successfully matched!" });
+
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.put('/admin/application/:id/status', updateApplicationStatus);
+
 
 
 
