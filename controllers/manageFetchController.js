@@ -38,7 +38,7 @@ const getCoachLimitedDetails = async (req, res) => {
                 result = await pool.query(`SELECT id, first_name, last_name, email, status, institutions, post_secondary_program FROM coach_applications WHERE ${searchParam} ILIKE $1`, [queryValue]);
             }
         } else {
-            result = await pool.query("SELECT id, first_name, last_name, email, status FROM coach_applications");
+            result = await pool.query("SELECT id, first_name, last_name, email, status, institutions, post_secondary_program FROM coach_applications");
         }
 
         res.status(200).json(result.rows);
@@ -64,7 +64,7 @@ const getStudentLimitedDetails = async (req, res) => {
                 result = await pool.query(`SELECT id, first_name, last_name, email, status, institution_name, program_name FROM student_applications WHERE ${searchParam} ILIKE $1`, [queryValue]);
             }
         } else {
-            result = await pool.query("SELECT id, first_name, last_name, email, status FROM student_applications");
+            result = await pool.query("SELECT id, first_name, last_name, email, status, institution_name, program_name FROM student_applications");
         }
 
         res.status(215).json(result.rows);
