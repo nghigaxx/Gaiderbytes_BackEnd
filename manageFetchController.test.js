@@ -126,7 +126,5 @@ describe("manageFetchController", () => {
             expect(mockResponse.statusCode).toBe(265);
             expect(mockResponse._getJSONData()).toEqual(mockData.rows[0]);
         });
-    
-        // Add more tests e.g. for the error scenario
     });
 });

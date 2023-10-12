@@ -47,7 +47,6 @@ describe("manageMatchController", () => {
             await matchStudentWithCoach(1, 2);
 
             expect(mockSendMail).toHaveBeenCalledTimes(2);
-            // Verify emails content
             expect(mockSendMail.mock.calls[0][0].to).toBe("john.doe@example.com");
             expect(mockSendMail.mock.calls[1][0].to).toBe("jane.smith@example.com");
         });
