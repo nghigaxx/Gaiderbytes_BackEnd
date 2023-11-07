@@ -1,21 +1,13 @@
-const { Pool } = require("pg");
+const pool = require('../dbPool');
 require("dotenv").config();
 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
-
-// Fetch limited details for coaches with fewer than 10 students and status 'verified'
 const getAvailableCoachLimitedDetails = async (req, res) => {
     try {
         const { searchParam, value } = req.query;
         let result;
         let query = "";
         const values = [];
+        const maxStudentsPerCoach = process.env.STUDENT_LIMIT
 
         if (searchParam && value) {
             if (searchParam === "name") {
@@ -26,12 +18,12 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
                         SELECT coach_id 
                         FROM student_applications 
                         GROUP BY coach_id 
-                        HAVING COUNT(id) >= 10
+                        HAVING COUNT(id) >= $1
                     )
                     AND status ILIKE 'verified'
-                    AND CONCAT(first_name, ' ', last_name) ILIKE $1
+                    AND CONCAT(first_name, ' ', last_name) ILIKE $2
                 `;
-                values.push(`%${value}%`);
+                values.push(maxStudentsPerCoach,`%${value}%`);
             } else if (searchParam === "id") {
                 query = `
                     SELECT id, first_name, last_name, email
@@ -40,12 +32,12 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
                         SELECT coach_id 
                         FROM student_applications 
                         GROUP BY coach_id 
-                        HAVING COUNT(id) >= 10
+                        HAVING COUNT(id) >= $1
                     )
                     AND status ILIKE 'verified'
-                    AND id = $1
+                    AND id = $2
                 `;
-                values.push(parseInt(value));
+                values.push(maxStudentsPerCoach,parseInt(value));
             } else {
                 query = `
                     SELECT id, first_name, last_name, email
@@ -54,12 +46,12 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
                         SELECT coach_id 
                         FROM student_applications 
                         GROUP BY coach_id 
-                        HAVING COUNT(id) >= 10
+                        HAVING COUNT(id) >= $1
                     )
                     AND status ILIKE 'verified'
-                    AND ${searchParam} ILIKE $1
+                    AND ${searchParam} ILIKE $2
                 `;
-                values.push(`%${value}%`);
+                values.push(maxStudentsPerCoach,`%${value}%`);
             }
             result = await pool.query(query, values);
         } else {
@@ -70,11 +62,11 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
                     SELECT coach_id 
                     FROM student_applications 
                     GROUP BY coach_id 
-                    HAVING COUNT(id) >= 10
+                    HAVING COUNT(id) >= $1
                 )
                 AND status ILIKE 'verified'
             `;
-            result = await pool.query(query);
+            result = await pool.query(query,[maxStudentsPerCoach]);
         }
 
         res.status(225).json(result.rows);
@@ -84,7 +76,6 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
     }
 };
 
-// Fetch limited details for students who are not yet matched
 const getUnmatchedStudentLimitedDetails = async (req, res) => {
     try {
         const { searchParam, value } = req.query;

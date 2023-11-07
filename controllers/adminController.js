@@ -1,15 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { Pool } = require("pg");
-require("dotenv").config();
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+const pool = require('../dbPool');
+require('dotenv').config();
 
 const getAdminPassword = async (username) => {
     const query = "SELECT password FROM admins WHERE username = $1";
@@ -35,7 +27,6 @@ const adminLogin = async (req, res) => {
             return res.status(301).json({ message: "Unauthorized" });
         }
 
-        // JWT token generation
         const token = jwt.sign(
             { id: username }, 
             process.env.JWT_SECRET,

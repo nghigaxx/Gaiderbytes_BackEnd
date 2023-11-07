@@ -1,19 +1,11 @@
 require('dotenv').config();
 
-const { Pool } = require("pg");
+const pool = require('../dbPool');
 const nodemailer = require("nodemailer");
 const { google } = require('googleapis');
 const fs = require('fs');
 const { GoogleAuth } = require('google-auth-library');
 const { Readable } = require('stream');
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
