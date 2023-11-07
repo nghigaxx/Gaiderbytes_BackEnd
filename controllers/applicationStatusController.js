@@ -1,13 +1,5 @@
-const { Pool } = require("pg");
-require("dotenv").config();
-
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+const pool = require('../dbPool');
+require('dotenv').config();
 
 const updateCoachStatus = async (req, res) => {
     const { id } = req.params;
@@ -15,8 +7,6 @@ const updateCoachStatus = async (req, res) => {
 
     const validStatuses = ["pending", "verified"];
     const tableName = "coach_applications";
-
-    console.log(newStatus);
     
     if (!validStatuses.includes(newStatus)) {
         return res.status(400).json({ message: "Invalid status value" });
