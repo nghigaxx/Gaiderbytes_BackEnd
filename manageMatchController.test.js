@@ -29,8 +29,8 @@ describe("manageMatchController", () => {
         });
 
         it("should throw error if coach workload limit reached", async () => {
-            mockQuery.mockResolvedValueOnce({ rows: [{}] }); // Indicating student is not matched
-            mockQuery.mockResolvedValueOnce({ rows: [{ count: 10 }] }); // Indicating coach limit reached
+            mockQuery.mockResolvedValueOnce({ rows: [{}] }); 
+            mockQuery.mockResolvedValueOnce({ rows: [{ count: 10 }] }); 
             await expect(CheckMatchValidity(1, 2)).rejects.toEqual({ code: 416, message: "Coach workload limit reached" });
         });
 
