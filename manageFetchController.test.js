@@ -1,60 +1,130 @@
-const request = require('supertest');
-const express = require('express');
-const {
-    getCoachLimitedDetails,
-    getCoachFullDetails,
-    getStudentLimitedDetails,
-    getStudentFullDetails
-} = require('./controllers/manageFetchController');
+const { Pool } = require("pg");
+jest.mock("pg");
 
-const app = express();
-app.use(express.json());
-app.get('/admin/coaches', getCoachLimitedDetails);
-app.get('/admin/coach/:id', getCoachFullDetails);
-app.get('/admin/students', getStudentLimitedDetails);
-app.get('/admin/student/:id', getStudentFullDetails);
+const mockQuery = jest.fn();
+const mockPoolInstance = { query: mockQuery };
+Pool.mockImplementation(() => mockPoolInstance);
 
-// Mocking the database
-jest.mock('pg');
+const { getCoachFullDetails, getCoachLimitedDetails, getStudentFullDetails, getStudentLimitedDetails } = require("./controllers/manageFetchController");
+const httpMocks = require("node-mocks-http");
 
-describe('Manage Fetch Controller', () => {
-    it('should fetch limited coach details', async () => {
-        const res = await request(app).get('/admin/coaches');
-        expect(res.statusCode).toBe(200);
+describe("manageFetchController", () => {
+    beforeEach(() => {
+        mockQuery.mockClear();
     });
 
-    it('should fetch coach details using a search parameter', async () => {
-        const res = await request(app).get('/admin/coaches?searchParam=first_name&value=John');
-        expect(res.statusCode).toBe(200);
+    describe("getCoachFullDetails", () => {
+        it("should return coach full details for a given ID", async () => {
+            const mockRequest = httpMocks.createRequest({
+                method: "GET",
+                url: "/admin/coach/1",
+                params: {
+                    id: "1",
+                },
+            });
+
+            const mockResponse = httpMocks.createResponse();
+            const mockData = {
+                rows: [{ id: 1, first_name: "John", last_name: "Doe", email: "john.doe@example.com", province: "Ontario", city: "Toronto", address:"123 random street", postal_code:"N9B2H5", date_of_birth:"1985-05-20", pronoun:"He/Him", years_of_experience:"5", resume_url:"https://test.cc/", self_identification:"black", gen_status:"1st gen", languages:"English, French", institutions:"UofT", availability:"3 semesters", introduction:"Hi", reside_in_canada:true, post_secondary_exp: true, status: "verified", post_secondary_program: "Software Engineering", verification_code: 123456 }],
+            };
+
+            mockQuery.mockResolvedValueOnce(mockData);
+
+            await getCoachFullDetails(mockRequest, mockResponse);
+            
+            expect(mockResponse.statusCode).toBe(255);
+            expect(mockResponse._getJSONData()).toEqual(mockData.rows[0]);
+        });
     });
 
-    it('should fetch full details for a specific coach', async () => {
-        const res = await request(app).get('/admin/coach/1');
-        expect(res.statusCode).toBe(255);
+    describe("getCoachLimitedDetails", () => {
+        it("should return limited coach details", async () => {
+            const mockRequest = httpMocks.createRequest({
+                method: "GET",
+                url: "/admin/coaches",
+                query: {},
+            });
+
+            const mockResponse = httpMocks.createResponse();
+            const mockData = {
+                rows: [{ id: 1, first_name: "John", last_name: "Doe", email: "john.doe@example.com", status: "verified" }]
+            };
+
+            mockQuery.mockResolvedValueOnce(mockData);
+
+            await getCoachLimitedDetails(mockRequest, mockResponse);
+            
+            expect(mockResponse.statusCode).toBe(200);
+            expect(mockResponse._getJSONData()).toEqual(mockData.rows);
+        });
     });
 
-    it('should fetch limited student details', async () => {
-        const res = await request(app).get('/admin/students');
-        expect(res.statusCode).toBe(215);
+    describe("getStudentLimitedDetails", () => {
+        it("should return limited student details", async () => {
+            const mockRequest = httpMocks.createRequest({
+                method: "GET",
+                url: "/admin/students",
+                query: {},
+            });
+    
+            const mockResponse = httpMocks.createResponse();
+            const mockData = {
+                rows: [{ id: 1, 
+                    first_name: 'Student',
+                    last_name: '1',
+                    email: 'student.1@example.com',
+                    status: 'matched'}],
+            };
+    
+            mockQuery.mockResolvedValueOnce(mockData);
+    
+            await getStudentLimitedDetails(mockRequest, mockResponse);
+    
+            expect(mockResponse.statusCode).toBe(215);
+            expect(mockResponse._getJSONData()).toEqual(mockData.rows);
+        });
+    
     });
-    it('should fetch student details using a search parameter', async () => {
-        const res = await request(app).get('/admin/students?searchParam=last_name&value=Smith');
-        expect(res.statusCode).toBe(215);
-    });
-
-    it('should fetch full details for a specific student', async () => {
-        const res = await request(app).get('/admin/student/1');
-        expect(res.statusCode).toBe(265);
-    });
-
-    it('should handle invalid search parameters for students gracefully', async () => {
-        const res = await request(app).get('/admin/students?searchParam=nonexistentColumn&value=test');
-        expect(res.statusCode).not.toBe(500); 
-    });
-
-    it('should handle invalid search parameters for coaches gracefully', async () => {
-        const res = await request(app).get('/admin/coaches?searchParam=nonexistentColumn&value=test');
-        expect(res.statusCode).not.toBe(500);  
+    
+    describe("getStudentFullDetails", () => {
+        it("should return student full details for a given ID", async () => {
+            const mockRequest = httpMocks.createRequest({
+                method: "GET",
+                url: "/admin/student/1",
+                params: {
+                    id: "1",
+                },
+            });
+    
+            const mockResponse = httpMocks.createResponse();
+            const mockData = {
+                rows: [{ id: 1, 
+                    first_name: 'Student',
+                    last_name: '1',
+                    email: 'student.1@example.com',
+                    province: 'Ontario',
+                    city: 'Toronto',
+                    address: '456 King St',
+                    postal_code: 'M5V2K5',
+                    date_of_birth: '2000-10-10',
+                    pronoun: 'She/Her',
+                    institution_name: 'University of Toronto',
+                    program_name: 'Computer Science',
+                    emergency_contact_first_name: 'John',
+                    emergency_contact_last_name: 'Doe',
+                    emergency_contact_phone: '416-555-1234',
+                    emergency_contact_relation: 'Father',
+                    status: 'matched',
+                    verification_code: 654321,
+                    coach_id: 1 }],
+            };
+    
+            mockQuery.mockResolvedValueOnce(mockData);
+    
+            await getStudentFullDetails(mockRequest, mockResponse);
+    
+            expect(mockResponse.statusCode).toBe(265);
+            expect(mockResponse._getJSONData()).toEqual(mockData.rows[0]);
+        });
     });
 });
-

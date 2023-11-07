@@ -50,6 +50,36 @@ const adminLogin = async (req, res) => {
     }
 };
 
+const createAdmin = async (username, password) => {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const query = "INSERT INTO admins (username, password) VALUES ($1, $2)";
+    await pool.query(query, [username, hashedPassword]);
+};
+
+const adminSignUp = async (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json({ message: "Please enter both username and password." });
+    }
+
+    try {
+        const existingPassword = await getAdminPassword(username);
+        if (existingPassword) {
+            return res.status(400).json({ message: "Username already exists." });
+        }
+
+        await createAdmin(username, password);
+        
+        return res.status(201).json({ message: "Admin created successfully." });
+
+    } catch (error) {
+        console.error(error.message);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
 module.exports = {
-    adminLogin
+    adminLogin,
+    adminSignUp
 };
