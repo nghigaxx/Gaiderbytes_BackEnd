@@ -35,7 +35,6 @@ const adminLogin = async (req, res) => {
             return res.status(301).json({ message: "Unauthorized" });
         }
 
-        // JWT token generation
         const token = jwt.sign(
             { id: username }, 
             process.env.JWT_SECRET,

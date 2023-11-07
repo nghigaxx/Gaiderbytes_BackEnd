@@ -9,7 +9,7 @@ const { adminLogin, adminSignUp } = require('./controllers/adminController');
 const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, getStudentFullDetails} = require('./controllers/manageFetchController');
 const { CheckMatchValidity, matchStudentWithCoach } = require('./controllers/manageMatchController');
 const { getAvailableCoachLimitedDetails, getUnmatchedStudentLimitedDetails} = require('./controllers/fetchMatchController')
-const { updateApplicationStatus } = require('./controllers/applicationStatusController');
+const { updateCoachStatus, updateStudentStatus, unmatchStudent } = require('./controllers/applicationStatusController');
 
 
 const storage = multer.memoryStorage();
@@ -91,11 +91,11 @@ app.post('/adminLogin', adminLogin);
 app.post('/admin/signup', adminSignUp);
 
 app.get('/admin/coaches', getCoachLimitedDetails);
-app.get('/admin/coach/:id', getCoachFullDetails);  // Get full details for a specific coach using their ID
+app.get('/admin/coach/:id', getCoachFullDetails);  
 app.get('/admin/students', getStudentLimitedDetails);
-app.get('/admin/student/:id', getStudentFullDetails);  // Get full details for a specific student using their ID
-app.get('/admin/unmatched_students', getUnmatchedStudentLimitedDetails); // Get list of unmatched students, only use for matching page
-app.get('/admin/available_coaches', getAvailableCoachLimitedDetails); // Get list of available coaches, only use for matching page
+app.get('/admin/student/:id', getStudentFullDetails);  
+app.get('/admin/unmatched_students', getUnmatchedStudentLimitedDetails); 
+app.get('/admin/available_coaches', getAvailableCoachLimitedDetails); 
 
 app.put('/admin/match', async (req, res) => {
   try {
@@ -119,8 +119,9 @@ app.put('/admin/match', async (req, res) => {
   }
 });
 
-app.put('/admin/application/:id/status', updateApplicationStatus);
-
+app.put('/admin/student/:id/status', updateStudentStatus);
+app.put('/admin/coach/:id/status', updateCoachStatus);
+app.put('/admin/application/:id/unmatch', unmatchStudent);
 
 
 
