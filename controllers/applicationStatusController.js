@@ -10,13 +10,12 @@ const pool = new Pool({
 });
 
 const updateApplicationStatus = async (req, res) => {
-    const { id } = req.params;  // Assuming ID is passed as a parameter in the URL
+    const { id } = req.params;  
     const { applicationType, newStatus } = req.body;
 
     let validStatuses = [];
     let tableName = '';
 
-    // Define valid statuses and table names for each application type
     if (applicationType === 'student') {
         validStatuses = ["pending", "matched", "graduated"];
         tableName = "student_applications";
