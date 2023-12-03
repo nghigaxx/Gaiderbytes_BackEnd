@@ -52,7 +52,7 @@ const unmatchStudent = async (req, res) => {
 
     try {
         const result = await pool.query(
-            `UPDATE student_applications SET coach_id = NULL WHERE id = $1 RETURNING *`, 
+            `UPDATE student_applications SET coach_id = NULL, status = 'pending' WHERE id = $1 RETURNING *`, 
             [id]
         );
         
