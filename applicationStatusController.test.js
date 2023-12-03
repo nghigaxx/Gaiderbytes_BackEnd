@@ -62,7 +62,7 @@ describe('Controller Functions', () => {
       await unmatchStudent(req, res);
 
       expect(pool.query).toHaveBeenCalledWith(
-        `UPDATE student_applications SET coach_id = NULL WHERE id = $1 RETURNING *`,
+        `UPDATE student_applications SET coach_id = NULL, status = 'pending' WHERE id = $1 RETURNING *`,
         ['3']
       );
       expect(res.status).toHaveBeenCalledWith(200);
