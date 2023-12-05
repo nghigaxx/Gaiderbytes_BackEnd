@@ -5,7 +5,7 @@ const multer = require("multer");
 const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
 const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
 const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
-const { adminLogin, adminSignUp } = require('./controllers/adminController');
+const { adminLogin, adminSignUp, changeAdminPassword, logoutAdmin } = require('./controllers/adminController');
 const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, getStudentFullDetails} = require('./controllers/manageFetchController');
 const { CheckMatchValidity, matchStudentWithCoach } = require('./controllers/manageMatchController');
 const { getAvailableCoachLimitedDetails, getUnmatchedStudentLimitedDetails} = require('./controllers/fetchMatchController')
@@ -89,6 +89,8 @@ app.post("/verifyCode", async (req, res) => {
 
 app.post('/adminLogin', adminLogin);
 app.post('/admin/signup', adminSignUp);
+app.post('/admin/change_password', changeAdminPassword);
+app.post('/admin/log_out', logoutAdmin)
 
 app.get('/admin/coaches', getCoachLimitedDetails);
 app.get('/admin/coach/:id', getCoachFullDetails);  
