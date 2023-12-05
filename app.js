@@ -10,6 +10,7 @@ const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, g
 const { CheckMatchValidity, matchStudentWithCoach } = require('./controllers/manageMatchController');
 const { getAvailableCoachLimitedDetails, getUnmatchedStudentLimitedDetails} = require('./controllers/fetchMatchController')
 const { updateCoachStatus, updateStudentStatus, unmatchStudent } = require('./controllers/applicationStatusController');
+const verifyToken = require('./middleware/verifyToken');
 
 
 const storage = multer.memoryStorage();
@@ -89,17 +90,17 @@ app.post("/verifyCode", async (req, res) => {
 
 app.post('/adminLogin', adminLogin);
 app.post('/admin/signup', adminSignUp);
-app.post('/admin/change_password', changeAdminPassword);
+app.post('/admin/change_password', verifyToken, changeAdminPassword);
 app.post('/admin/log_out', logoutAdmin)
 
-app.get('/admin/coaches', getCoachLimitedDetails);
-app.get('/admin/coach/:id', getCoachFullDetails);  
-app.get('/admin/students', getStudentLimitedDetails);
-app.get('/admin/student/:id', getStudentFullDetails);  
-app.get('/admin/unmatched_students', getUnmatchedStudentLimitedDetails); 
-app.get('/admin/available_coaches', getAvailableCoachLimitedDetails); 
+app.get('/admin/coaches', verifyToken, getCoachLimitedDetails);
+app.get('/admin/coach/:id', verifyToken, getCoachFullDetails);  
+app.get('/admin/students', verifyToken, getStudentLimitedDetails);
+app.get('/admin/student/:id', verifyToken, getStudentFullDetails);  
+app.get('/admin/unmatched_students', verifyToken, getUnmatchedStudentLimitedDetails); 
+app.get('/admin/available_coaches', verifyToken, getAvailableCoachLimitedDetails); 
 
-app.put('/admin/match', async (req, res) => {
+app.put('/admin/match', verifyToken, async (req, res) => {
   try {
       const { studentId, coachId } = req.body; 
 
@@ -121,9 +122,9 @@ app.put('/admin/match', async (req, res) => {
   }
 });
 
-app.put('/admin/student/:id/status', updateStudentStatus);
-app.put('/admin/coach/:id/status', updateCoachStatus);
-app.put('/admin/application/:id/unmatch', unmatchStudent);
+app.put('/admin/student/:id/status', verifyToken, updateStudentStatus);
+app.put('/admin/coach/:id/status', verifyToken, updateCoachStatus);
+app.put('/admin/application/:id/unmatch', verifyToken, unmatchStudent);
 
 
 
