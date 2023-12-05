@@ -139,5 +139,6 @@ module.exports = {
     adminLogin,
     adminSignUp,
     changeAdminPassword,
-    logoutAdmin
+    logoutAdmin,
+    isTokenBlacklisted
 };
