@@ -37,9 +37,42 @@ const checkVerificationCode = async (email, userType, code) => {
   return result.rows.length > 0;
 };
 
+const verifyCodeAndReturnStatus = async (req, res) => {
+  try {
+      const { email, userType, code } = req.body;
+      const isValid = await checkVerificationCode(email, userType, code);
+
+      if (isValid) {
+          const status = await getUserStatus(email, userType);
+          res.status(200).json({ message: "Verification successful", status: status });
+      } else {
+          res.status(400).json({ message: "Invalid verification code" });
+      }
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getUserStatus = async (email, userType) => {
+  const table = userType === 'student' ? 'student_applications' : 'coach_applications';
+  try {
+      const query = `SELECT status FROM ${table} WHERE email = $1`;
+      const result = await pool.query(query, [email]);
+      if (result.rows.length > 0) {
+          return result.rows[0].status;
+      } else {
+          throw new Error('User not found');
+      }
+  } catch (error) {
+      console.error('Error fetching user status:', error.message);
+      throw error;
+  }
+};
+
 module.exports = {
   findUserByEmail,
   sendVerificationCode,
   updateUserVerificationCode,
-  checkVerificationCode,
+  verifyCodeAndReturnStatus
 };

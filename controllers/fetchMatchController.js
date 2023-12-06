@@ -8,6 +8,7 @@ const getAvailableCoachLimitedDetails = async (req, res) => {
         let query = "";
         const values = [];
         const maxStudentsPerCoach = process.env.STUDENT_LIMIT
+        console.log("Query Parameters:", req.query);
 
         if (searchParam && value) {
             if (searchParam === "name") {
