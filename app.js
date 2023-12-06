@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
 const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
-const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
+const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, verifyCodeAndReturnStatus} = require("./controllers/checkUserStatusController");
 const { adminLogin, adminSignUp, changeAdminPassword, logoutAdmin } = require('./controllers/adminController');
 const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, getStudentFullDetails} = require('./controllers/manageFetchController');
 const { CheckMatchValidity, matchStudentWithCoach } = require('./controllers/manageMatchController');
@@ -71,22 +71,8 @@ app.post("/checkStatus", async (req, res) => {
   }
 });
 
-app.post("/verifyCode", async (req, res) => {
-  try {
-    const { email, userType, code } = req.body;
-    const isValidCode = await checkVerificationCode(email, userType, code);
 
-    if (!isValidCode) {
-      return res.status(402).json({ message: "Invalid verification code" });
-    }
-
-    const user = await findUserByEmail(email, userType);
-    res.status(203).json({ message: "Verification successful", status: user.status });
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+app.post('/verifyCode', verifyCodeAndReturnStatus);
 
 app.post('/adminLogin', adminLogin);
 app.post('/admin/signup', adminSignUp);
