@@ -2,8 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const multer = require("multer");
-const { checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
-const { checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
+const { checkExistingStudentByEmail ,checkExistingStudent, createNewStudent } = require("./controllers/studentApplicationController");
+const { checkExistingCoachByEmail, checkExistingCoach, createNewCoach } = require("./controllers/coachApplicationController");
 const { findUserByEmail, sendVerificationCode, updateUserVerificationCode, checkVerificationCode} = require("./controllers/checkUserStatusController");
 const { adminLogin, adminSignUp } = require('./controllers/adminController');
 const { getCoachLimitedDetails, getCoachFullDetails, getStudentLimitedDetails, getStudentFullDetails} = require('./controllers/manageFetchController');
@@ -19,6 +19,35 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
+
+
+app.get("/student/email/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+    const existingStudent = await checkExistingStudentByEmail(email);
+    if (!existingStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    res.status(200).json({ message: "Student exists", student: existingStudent });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/coach/email/:email", async (req, res) => {
+  try {
+    const email = req.params.email;
+    const existingCoach = await checkExistingCoachByEmail(email);
+    if (!existingCoach) {
+      return res.status(404).json({ message: "Coach not found" });
+    }
+    res.status(200).json({ message: "Coach exists", coach: existingCoach });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.post("/studentApplication", async (req, res) => {
   try {
@@ -95,7 +124,7 @@ app.get('/admin/coach/:id', getCoachFullDetails);
 app.get('/admin/students', getStudentLimitedDetails);
 app.get('/admin/student/:id', getStudentFullDetails);  
 app.get('/admin/unmatched_students', getUnmatchedStudentLimitedDetails); 
-app.get('/admin/available_coaches', getAvailableCoachLimitedDetails); 
+app.get('/admin/available_coaches', getAvailableCoachLimitedDetails);
 
 app.put('/admin/match', async (req, res) => {
   try {

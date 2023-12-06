@@ -19,6 +19,14 @@ const checkExistingStudent = async (first_name, last_name, email) => {
   return result.rows.length > 0;
 };
 
+const checkExistingStudentByEmail = async (email) => {
+  const result = await pool.query(
+    "SELECT * FROM student_applications WHERE email = $1",
+    [email]
+  );
+  return result.rows.length > 0;
+};
+
 const createNewStudent = async (data) => {
   const {
     first_name,
@@ -78,4 +86,5 @@ const createNewStudent = async (data) => {
 module.exports = {
   checkExistingStudent,
   createNewStudent,
+  checkExistingStudentByEmail,
 };
